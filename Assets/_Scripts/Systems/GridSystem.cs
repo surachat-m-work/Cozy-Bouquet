@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class GridSystem : Singleton<GridSystem> {
 
+    [SerializeField] private Slot[,] _allSlots = new Slot[6, 6];
+
     // เก็บ Slot ทั้งหมดในรูปแบบ Dictionary เพื่อให้ค้นหาตามพิกัดได้ง่าย
     public Dictionary<Vector2Int, Slot> slotMap = new Dictionary<Vector2Int, Slot>();
 
@@ -13,7 +15,7 @@ public class GridSystem : Singleton<GridSystem> {
         // หา Slot ทั้งหมดในฉาก (ต้องแน่ใจว่า SlotSlot อยู่ใต้ GridPanel/SlotContainer)
         Slot[] allSlots = FindObjectsByType<Slot>(FindObjectsSortMode.None);
         foreach (Slot slot in allSlots) {
-            slotMap[slot.gridPosition] = slot;
+            slotMap[slot.Coordinate] = slot;
         }
     }
 
@@ -23,6 +25,35 @@ public class GridSystem : Singleton<GridSystem> {
         return slotMap.ContainsKey(pos) ? slotMap[pos] : null;
     }
 
+    public List<CardView> GetNeighborsOfCard(CardView card) {
+        HashSet<CardView> neighbors = new HashSet<CardView>();
+        List<Slot> occupiedSlots = card.GetOccupiedSlots();
+
+        foreach (var slot in occupiedSlots) {
+            Vector2Int pos = slot.Coordinate;
+
+            // ตรวจสอบ 4 ทิศทางรอบ Slot นั้นๆ
+            CheckDirection(pos.x + 1, pos.y, neighbors, card);
+            CheckDirection(pos.x - 1, pos.y, neighbors, card);
+            CheckDirection(pos.x, pos.y + 1, neighbors, card);
+            CheckDirection(pos.x, pos.y - 1, neighbors, card);
+        }
+
+        return neighbors.ToList();
+    }
+
+    private void CheckDirection(int x, int y, HashSet<CardView> neighbors, CardView originalCard) {
+        // เช็คว่าไม่หลุดขอบ Grid
+        if (x >= 0 && x < 6 && y >= 0 && y < 6) {
+            Slot targetSlot = _allSlots[x, y];
+            if (targetSlot != null && targetSlot.OccupiedCard != null) {
+                // ถ้ามีการ์ดอยู่ และไม่ใช่การ์ดใบเดิมของเรา (ตัวมันเอง)
+                if (targetSlot.OccupiedCard != originalCard) {
+                    neighbors.Add(targetSlot.OccupiedCard);
+                }
+            }
+        }
+    }
 
     // public const int GridSize = 6;
 

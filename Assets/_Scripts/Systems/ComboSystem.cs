@@ -41,10 +41,10 @@ public class ComboSystem : Singleton<ComboSystem> {
 
     private List<CardView> GetAllCardsOnGrid() {
         HashSet<CardView> cards = new HashSet<CardView>();
-        // foreach (var slot in GridSystem.Instance.slotMap.Values) {
-        //     if (slot.OccupiedCard != null)
-        //         cards.Add(slot.OccupiedCard);
-        // }
+        foreach (var slot in GridSystem.Instance.slotMap.Values) {
+            if (slot.OccupiedCard != null)
+                cards.Add(slot.OccupiedCard);
+        }
         return cards.ToList();
     }
 
@@ -79,19 +79,18 @@ public class ComboSystem : Singleton<ComboSystem> {
         int cardCount = cluster.Count;
 
         // เช็คเงื่อนไขตามลำดับความยาก (แบบเดียวกับที่เราออกแบบไว้)
-        // if (IsColorFlush(cluster)) {
-        //     ActionSystem.Instance.AddReaction(new AddChipsGA(80));
-        //     ActionSystem.Instance.AddReaction(new AddMultiplierGA(4.0f));
-        //     Debug.Log("Combo: Color Flush!");
-        // }
-        // ... เช็คคอมโบอื่นๆ ต่อไป ...
+        if (IsColorFlush(cluster)) {
+            ActionSystem.Instance.AddReaction(new AddChipsGA(80));
+            ActionSystem.Instance.AddReaction(new AddMultiplierGA(4.0f));
+            Debug.Log("Combo: Color Flush!");
+        }
     }
 
     // ตัวอย่าง Helper Method สำหรับเช็คสีเดียวกันหมด
-    // private bool IsColorFlush(List<CardView> cluster) {
-    //     FlowerColor firstColor = cluster[0].CardData.Color;
-    //     return cluster.All(c => c.CardData.Color == firstColor);
-    // }
+    private bool IsColorFlush(List<CardView> cluster) {
+        FlowerColor firstColor = cluster[0].CardData.Color;
+        return cluster.All(c => c.CardData.Color == firstColor);
+    }
 
     // --- ฟังก์ชันหลัก: คำนวณคะแนนรวมทุกกลุ่มก้อน ---
     public int CalculateTotalBoardScore() {
@@ -171,7 +170,7 @@ public class ComboSystem : Singleton<ComboSystem> {
         // เพิ่มเงื่อนไขพิเศษ: Red Rose (Thorned Love)
         if (card.CardData.cardName == "Red Rose") {
             var neighbors = GetNeighborCards(card);
-            if (neighbors.Any(n => n.CardData.color == FlowerColor.Red))
+            if (neighbors.Any(n => n.CardData.Color == FlowerColor.Red))
                 bonus += 30;
         }
 
@@ -193,7 +192,7 @@ public class ComboSystem : Singleton<ComboSystem> {
 
 
     // --- Helper: หาเพื่อนบ้าน (เช็คจาก Slot) ---
-    private List<CardView> GetNeighborCards(CardView card) {
+    public List<CardView> GetNeighborCards(CardView card) {
         List<CardView> neighbors = new List<CardView>();
         List<Slot> slots = card.GetOccupiedSlots();
 
@@ -203,8 +202,8 @@ public class ComboSystem : Singleton<ComboSystem> {
         }
 
         foreach (Slot s in slots) {
-            int x = s.gridPosition.x;
-            int y = s.gridPosition.y;
+            int x = s.Coordinate.x;
+            int y = s.Coordinate.y;
 
             // เช็ค 4 ทิศทางรอบ Slot นั้นๆ
             Vector2Int[] directions = {
@@ -217,7 +216,7 @@ public class ComboSystem : Singleton<ComboSystem> {
             foreach (var dir in directions) {
                 Slot neighborSlot = GridSystem.Instance.GetSlotAt(dir.x, dir.y);
                 if (neighborSlot != null && neighborSlot.isOccupied) {
-                    CardView neighborCard = neighborSlot.cardOnSlot;
+                    CardView neighborCard = neighborSlot.OccupiedCard;
 
                     // ต้องไม่ใช่ตัวมันเอง และต้องมีการ์ดอยู่จริงๆ
                     if (neighborCard != null && neighborCard != card) {
@@ -237,8 +236,8 @@ public class ComboSystem : Singleton<ComboSystem> {
         List<CardView> cards = new List<CardView>();
         // สมมติว่า allSlots อยู่ใน GridManager
         foreach (Slot s in GameManager.Instance.AllSlots) {
-            if (s.isOccupied && s.cardOnSlot != null && !cards.Contains(s.cardOnSlot))
-                cards.Add(s.cardOnSlot);
+            if (s.isOccupied && s.OccupiedCard != null && !cards.Contains(s.OccupiedCard))
+                cards.Add(s.OccupiedCard);
         }
         return cards;
     }
@@ -275,7 +274,7 @@ public class ComboSystem : Singleton<ComboSystem> {
 
     // Helper เพิ่มเติมสำหรับเช็คสีไม่ซ้ำ (Rainbow)
     private bool IsRainbow(List<CardView> cards) {
-        return cards.Select(c => c.CardData.color).Distinct().Count() == cards.Count;
+        return cards.Select(c => c.CardData.Color).Distinct().Count() == cards.Count;
     }
 
     private bool HasTypeSet(List<CardView> cards, int count) {
@@ -284,7 +283,7 @@ public class ComboSystem : Singleton<ComboSystem> {
 
     // เช็คจำนวนสี (Color)
     private bool HasColorSet(List<CardView> cards, int count) {
-        return cards.GroupBy(c => c.CardData.color).Any(g => g.Count() >= count);
+        return cards.GroupBy(c => c.CardData.Color).Any(g => g.Count() >= count);
     }
 
     // เช็ค Full House (3 ชนิดหนึ่ง + 2 อีกชนิดหนึ่ง)
@@ -295,7 +294,7 @@ public class ComboSystem : Singleton<ComboSystem> {
 
     // เช็ค Two Pairs สี
     private bool HasTwoPairsColor(List<CardView> cards) {
-        var groups = cards.GroupBy(c => c.CardData.color).Where(g => g.Count() >= 2).ToList();
+        var groups = cards.GroupBy(c => c.CardData.Color).Where(g => g.Count() >= 2).ToList();
         return groups.Count >= 2;
     }
 

@@ -134,7 +134,7 @@ public class CardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         // หา Slot ที่อยู่ข้างล่าง (พิกัด Y + 1)
         // ตรงนี้คุณต้องมีระบบอ้างอิง Slot ตามพิกัด X,Y (เช่น Dictionary)
-        Slot bottomSlot = GridSystem.Instance.GetSlotAt(startSlot.gridPosition.x, startSlot.gridPosition.y + 1);
+        Slot bottomSlot = GridSystem.Instance.GetSlotAt(startSlot.Coordinate.x, startSlot.Coordinate.y + 1);
 
         return bottomSlot != null && !bottomSlot.isOccupied;
     }
@@ -174,13 +174,13 @@ public class CardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
                 currentTargetTopSlot = hoveredSlot;
             } else // ถ้าการ์ดอยู่ซ้าย ให้ถอยไปจองช่องทางซ้าย (เพื่อให้ช่องที่เมาส์ชี้เป็นช่องขวา)
               {
-                Slot left = GridSystem.Instance.GetSlotAt(hoveredSlot.gridPosition.x - 1, hoveredSlot.gridPosition.y);
+                Slot left = GridSystem.Instance.GetSlotAt(hoveredSlot.Coordinate.x - 1, hoveredSlot.Coordinate.y);
                 currentTargetTopSlot = (left != null && !left.isOccupied) ? left : hoveredSlot;
             }
         } else {
             // แนวตั้ง: ถ้ากางการ์ดอยู่สูงกว่ากึ่งกลาง Slot ให้ถอยขึ้นไปจองช่องบน
             if (cardY > slotY) {
-                Slot above = GridSystem.Instance.GetSlotAt(hoveredSlot.gridPosition.x, hoveredSlot.gridPosition.y - 1);
+                Slot above = GridSystem.Instance.GetSlotAt(hoveredSlot.Coordinate.x, hoveredSlot.Coordinate.y - 1);
                 currentTargetTopSlot = (above != null && !above.isOccupied) ? above : hoveredSlot;
             } else {
                 currentTargetTopSlot = hoveredSlot;
@@ -215,9 +215,9 @@ public class CardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     private Slot GetSecondSlot(Slot topSlot) {
         if (isHorizontal)
-            return GridSystem.Instance.GetSlotAt(topSlot.gridPosition.x + 1, topSlot.gridPosition.y);
+            return GridSystem.Instance.GetSlotAt(topSlot.Coordinate.x + 1, topSlot.Coordinate.y);
         else
-            return GridSystem.Instance.GetSlotAt(topSlot.gridPosition.x, topSlot.gridPosition.y + 1);
+            return GridSystem.Instance.GetSlotAt(topSlot.Coordinate.x, topSlot.Coordinate.y + 1);
     }
 
     public void HideGhost() {
@@ -257,8 +257,8 @@ public class CardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         targetSlots.Add(anchorSlot); // ช่องแรก (ที่เมาส์ชี้ หรือช่อง Anchor)
 
-        int nextX = anchorSlot.gridPosition.x;
-        int nextY = anchorSlot.gridPosition.y;
+        int nextX = anchorSlot.Coordinate.x;
+        int nextY = anchorSlot.Coordinate.y;
 
         if (isHorizontal) nextX += 1; // ถ้าแนวนอน ช่องที่สองคือ X + 1
         else nextY += 1; // ถ้าแนวตั้ง ช่องที่สองคือ Y + 1

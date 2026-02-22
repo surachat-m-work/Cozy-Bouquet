@@ -17,9 +17,9 @@ public class GameManager : Singleton<GameManager> {
         // 1. รวบรวมการ์ดทั้งหมดบน Grid (ไม่นับซ้ำ)
         List<CardView> cardsOnGrid = new List<CardView>();
         foreach (Slot slot in allSlots) {
-            if (slot.isOccupied && slot.cardOnSlot != null) {
-                if (!cardsOnGrid.Contains(slot.cardOnSlot)) {
-                    cardsOnGrid.Add(slot.cardOnSlot);
+            if (slot.isOccupied && slot.OccupiedCard != null) {
+                if (!cardsOnGrid.Contains(slot.OccupiedCard)) {
+                    cardsOnGrid.Add(slot.OccupiedCard);
                 }
             }
         }

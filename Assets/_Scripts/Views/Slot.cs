@@ -3,10 +3,15 @@ using UnityEngine;
 using UnityEngine.EventSystems; // จำเป็นต้องใช้สำหรับ Drag & Drop
 
 public class Slot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IDropHandler {
-    public SlotType type = SlotType.Open;
+    
+    [SerializeField] private SlotType _type;
+    [SerializeField] private Vector2Int _coordinate;
+    
+    public SlotType Type => _type;
+    public Vector2Int Coordinate => _coordinate; // พิกัด x, y ของช่องนี้
+
+    public CardView OccupiedCard { get; private set; }
     public bool isOccupied = false; // เช็คว่ามีใครวางอยู่หรือยัง
-    public Vector2Int gridPosition; // พิกัด x, y ของช่องนี้
-    public CardView cardOnSlot;
 
     public void OnPointerEnter(PointerEventData eventData) {
         // เช็คว่าเรากำลังลากการ์ดอยู่หรือไม่
@@ -56,13 +61,13 @@ public class Slot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, ID
     }
 
     public void SetCard(CardView card) {
-        cardOnSlot = card;
+        OccupiedCard = card;
         isOccupied = true;
     }
 
     // ฟังก์ชันสำหรับเคลียร์พื้นที่
     public void ClearSlot() {
-        cardOnSlot = null;
+        OccupiedCard = null;
         isOccupied = false;
     }
 }

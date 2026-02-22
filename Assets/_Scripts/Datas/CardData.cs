@@ -8,7 +8,7 @@ public class CardData : ScriptableObject
     public string cardName;
     public int scoreValue;
     public Sprite cardSprite;
-    public FlowerColor color;
+    public FlowerColor Color;
     public FlowerType type;
 
     [SerializeReference, SR] public List<Effect> effects = new List<Effect>();
