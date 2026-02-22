@@ -8,9 +8,9 @@ public class AddChipsEffect : Effect {
 
     public override GameAction GetGameAction(CardView card) {
         bool conditionMet = false;
-        foreach (var slot in card.GetOccupiedSlots()) {
-            if (slot.Type == preferredSlot) conditionMet = true;
-        }
+        // foreach (var slot in card.GetOccupiedSlots()) {
+        //     if (slot.Type == preferredSlot) conditionMet = true;
+        // }
 
         if (conditionMet) {
             // สร้าง Action กลับไปเฉยๆ ยังไม่สั่ง Perform ทันที
@@ -28,10 +28,10 @@ public class AddChipsOnSlotEffect : Effect {
 
     public override GameAction GetGameAction(CardView card) {
         // เช็คว่ามีช่องที่ทับอยู่ตรงกับเงื่อนไขไหม
-        foreach (var slot in card.GetOccupiedSlots()) {
-            if (slot.Type == _requiredSlot)
-                return new AddChipsGA(_bonusAmount);
-        }
+        // foreach (var slot in card.GetOccupiedSlots()) {
+        //     if (slot.Type == _requiredSlot)
+        //         return new AddChipsGA(_bonusAmount);
+        // }
         return null;
     }
 }
@@ -42,10 +42,10 @@ public class MultiplyOnSlotEffect : Effect {
     [SerializeField] private float _multiplier;
 
     public override GameAction GetGameAction(CardView card) {
-        foreach (var slot in card.GetOccupiedSlots()) {
-            if (slot.Type == _requiredSlot)
-                return new AddMultiplierGA(_multiplier);
-        }
+        // foreach (var slot in card.GetOccupiedSlots()) {
+        //     if (slot.Type == _requiredSlot)
+        //         return new AddMultiplierGA(_multiplier);
+        // }
         return null;
     }
 }
@@ -55,12 +55,12 @@ public class ShadeProtectionEffect : Effect {
     [SerializeField] private int _bonusChips;
 
     public override GameAction GetGameAction(CardView card) {
-        foreach (var slot in card.GetOccupiedSlots()) {
-            if (slot.Type == SlotType.Shade) {
-                // ส่ง Action พิเศษหรือแค่บวกแต้มก็ได้ แต่ในที่นี้เราเน้นบวก Chips
-                return new AddChipsGA(_bonusChips);
-            }
-        }
+        // foreach (var slot in card.GetOccupiedSlots()) {
+        //     if (slot.Type == SlotType.Shade) {
+        //         // ส่ง Action พิเศษหรือแค่บวกแต้มก็ได้ แต่ในที่นี้เราเน้นบวก Chips
+        //         return new AddChipsGA(_bonusChips);
+        //     }
+        // }
         return null;
     }
 }
@@ -84,9 +84,9 @@ public class NeighborBuffEffect : Effect {
 
     public override GameAction GetGameAction(CardView card) {
         // สมมติว่า DraggableCard มี Method สำหรับหาเพื่อนบ้านใน Cluster
-        int neighborCount = ComboSystem.Instance.GetNeighborCards(card).Count;
-        if (neighborCount > 0)
-            return new AddChipsGA(_chipsPerNeighbor * neighborCount);
+        // int neighborCount = ComboSystem.Instance.GetNeighborCards(card).Count;
+        // if (neighborCount > 0)
+        //     return new AddChipsGA(_chipsPerNeighbor * neighborCount);
 
         return null;
     }
@@ -99,14 +99,14 @@ public class ColorSynergyEffect : Effect {
 
     public override GameAction GetGameAction(CardView card) {
         // เรียกใช้ GridManager เพื่อหาเพื่อนบ้าน
-        var neighbors = ComboSystem.Instance.GetNeighborCards(card);
+        // var neighbors = ComboSystem.Instance.GetNeighborCards(card);
 
         // เช็คว่ามีเพื่อนบ้านสีที่ต้องการไหม
-        foreach (var neighbor in neighbors) {
-            if (neighbor.CardData.Color == _targetColor) {
-                return new AddMultiplierGA(_multAmount);
-            }
-        }
+        // foreach (var neighbor in neighbors) {
+        //     if (neighbor.CardData.Color == _targetColor) {
+        //         return new AddMultiplierGA(_multAmount);
+        //     }
+        // }
 
         return null;
     }

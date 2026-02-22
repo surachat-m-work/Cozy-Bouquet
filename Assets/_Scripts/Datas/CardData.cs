@@ -5,7 +5,7 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Card/Card Data")]
 public class CardData : ScriptableObject
 {
-    public string cardName;
+    public string CardName;
     public int scoreValue;
     public Sprite cardSprite;
     public FlowerColor Color;

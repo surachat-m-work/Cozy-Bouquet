@@ -15,13 +15,19 @@ MonoBehaviour:
   cardName: Card1
   scoreValue: 10
   cardSprite: {fileID: -6391966125483186643, guid: e5cad13d3c8077541aead32f5fc3f453, type: 3}
-  color: 0
+  Color: 0
   type: 0
-  effects: []
-  ability: 0
+  effects:
+  - rid: 7388180985324240971
+  ability: 1
   preferredSlot: 3
   bonusMultiplier: 1
   bonusChips: 0
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 7388180985324240971
+      type: {class: AddChipsEffect, ns: , asm: Assembly-CSharp}
+      data:
+        amount: 80
+        preferredSlot: 3
