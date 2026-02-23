@@ -22,7 +22,7 @@ public class SlotView : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
     [SerializeField] private Color _colorBorder = new Color(0.3f, 0.6f, 1f, 0.2f);
     [SerializeField] private Color _colorShade = new Color(0.7f, 0.5f, 0.9f, 0.2f);
     [SerializeField] private Color _colorBloom = new Color(1f, 0.8f, 0.2f, 0.3f);
-    
+
     [SerializeField] private Color _colorHighlight = new Color(1f, 1f, 1f, 0.4f);
     [SerializeField] private Color _colorValid = new Color(0.3f, 1f, 0.3f, 0.5f);
     [SerializeField] private Color _colorInvalid = new Color(1f, 0.3f, 0.3f, 0.5f);
@@ -32,7 +32,8 @@ public class SlotView : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
 
     // ─── State ─────────────────────────────────────────────────
     private bool _isHovering;
-    private CardView _draggingCard;
+    private bool _isOccupied = false; // เช็คว่ามีใครวางอยู่หรือยัง
+    private Card _draggingCard;
 
     // ─── Properties ────────────────────────────────────────────
     public Vector2Int GridPosition => _gridPosition;
@@ -50,18 +51,18 @@ public class SlotView : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
             // สร้าง highlight image ถ้ายังไม่มี
             GameObject highlightObj = new GameObject("Highlight");
             highlightObj.transform.SetParent(transform, false);
-            
+
             RectTransform highlightRect = highlightObj.AddComponent<RectTransform>();
             highlightRect.anchorMin = Vector2.zero;
             highlightRect.anchorMax = Vector2.one;
             highlightRect.sizeDelta = Vector2.zero;
-            
+
             _highlightImage = highlightObj.AddComponent<Image>();
             _highlightImage.raycastTarget = false;
         }
 
         UpdateSlotColor();
-        HideHighlight();
+        // HideHighlight();
     }
 
     // ─── Visual Updates ────────────────────────────────────────
@@ -77,20 +78,20 @@ public class SlotView : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
         };
     }
 
-    private void ShowHighlight(Color color) {
-        if (_highlightImage == null) return;
+    // private void ShowHighlight(Color color) {
+    //     if (_highlightImage == null) return;
 
-        _highlightImage.DOKill();
-        _highlightImage.color = color;
-        _highlightImage.DOFade(color.a, _highlightDuration);
-    }
+    //     _highlightImage.DOKill();
+    //     _highlightImage.color = color;
+    //     _highlightImage.DOFade(color.a, _highlightDuration);
+    // }
 
-    private void HideHighlight() {
-        if (_highlightImage == null) return;
+    // private void HideHighlight() {
+    //     if (_highlightImage == null) return;
 
-        _highlightImage.DOKill();
-        _highlightImage.DOFade(0f, _highlightDuration);
-    }
+    //     _highlightImage.DOKill();
+    //     _highlightImage.DOFade(0f, _highlightDuration);
+    // }
 
     // /// <summary>
     // /// Highlight slot ที่ 2 ที่การ์ด 1x2 จะครอบ
@@ -100,7 +101,7 @@ public class SlotView : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
 
     //     // คำนวณตำแหน่งของ slot ที่ 2
     //     Vector2Int secondSlotPos = GridSystem.Instance.GetSecondSlotPosition(_gridPosition, card.Orientation);
-        
+
     //     // หา GridSlotView ของ slot ที่ 2
     //     GridView visualizer = FindFirstObjectByType<GridView>();
     //     if (visualizer == null) return;
@@ -119,7 +120,7 @@ public class SlotView : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
 
     //     // คำนวณตำแหน่งของ slot ที่ 2
     //     Vector2Int secondSlotPos = GridSystem.Instance.GetSecondSlotPosition(_gridPosition, _draggingCard.Orientation);
-        
+
     //     // หา GridSlotView ของ slot ที่ 2
     //     GridView visualizer = FindFirstObjectByType<GridView>();
     //     if (visualizer == null) return;
@@ -132,63 +133,86 @@ public class SlotView : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
 
     // ─── Drag & Drop Events ────────────────────────────────────
     public void OnPointerEnter(PointerEventData eventData) {
-        // TEST: แค่ hover ธรรมดา ไม่ต้องลากการ์ด
-        Debug.Log($"🟢 HOVER DETECTED at slot {_gridPosition}");
-        
         _isHovering = true;
 
         // เช็คว่ามีการ์ดกำลังถูก drag อยู่หรือไม่
-        _draggingCard = eventData.pointerDrag?.GetComponent<CardView>();
+        _draggingCard = eventData.pointerDrag?.GetComponent<Card>();
 
         if (_draggingCard != null) {
+            _draggingCard.ShowGhost(this); /////////////////////////////////
             Debug.Log($"🎴 Card dragging: {_draggingCard.CardData?.CardName}");
-            
+
             // เช็คว่าวางได้หรือไม่
             bool canPlace = CanPlaceCard(_draggingCard);
             Debug.Log($"📍 Can place: {canPlace}");
-            
+
             // Highlight slot นี้
-            ShowHighlight(canPlace ? _colorValid : _colorInvalid);
-            
+            // ShowHighlight(canPlace ? _colorValid : _colorInvalid);
+
             // Highlight slot ที่ 2 ด้วย (เพราะการ์ดขนาด 1x2)
             // HighlightSecondSlot(_draggingCard, canPlace);
-        } else {
-            Debug.Log($"🖱️ Just hovering, no card dragging");
-            ShowHighlight(_colorHighlight);
+        // } else {
+            // Debug.Log($"🖱️ Just hovering, no card dragging");
+            // ShowHighlight(_colorHighlight);
         }
     }
 
     public void OnPointerExit(PointerEventData eventData) {
+        // _draggingCard = eventData.pointerDrag?.GetComponent<CardView>();
+
+        if (_draggingCard != null) {
+            _draggingCard.NotifyPointerExitSlot(this);
+        }
+
         _isHovering = false;
         _draggingCard = null;
-        HideHighlight();
-        
+        // HideHighlight();
+
         // ซ่อน highlight ของ slot ที่ 2 ด้วย
         // HideSecondSlotHighlight();
     }
 
     public void OnDrop(PointerEventData eventData) {
         CardView droppedCard = eventData.pointerDrag?.GetComponent<CardView>();
-        
-        if (droppedCard == null) {
-            Debug.LogWarning("Dropped object is not a card!");
-            return;
-        }
+        if (droppedCard == null) return;
 
         // พยายามวางการ์ดลง grid
         bool success = TryPlaceCard(droppedCard);
 
         if (success) {
             Debug.Log($"Placed {droppedCard.CardData?.CardName} at {_gridPosition} ({_slotType})");
-            
+
             // แจ้ง HandSystem ว่าการ์ดถูกเล่นแล้ว
             // HandSystem.Instance?.PlayCard(droppedCard);
-        } else {
-            Debug.LogWarning($"Cannot place card at {_gridPosition}");
+        // } else {
+        //     Debug.LogWarning($"Cannot place card at {_gridPosition}");
         }
 
-        HideHighlight();
+        // HideHighlight();
     }
+
+    // public void OnDrop(PointerEventData eventData) {
+    //     CardView card = eventData.pointerDrag.GetComponent<CardView>();
+    //     if (card == null) return;
+
+    //     Slot anchor = card.GetCurrentTargetTopSlot();
+
+    //     List<Slot> allTargetSlots = card.GetAllTargetSlots(anchor);
+
+    //     bool canPlace = true;
+
+    //     if (allTargetSlots.Count < 2) canPlace = false;
+
+    //     foreach (Slot s in allTargetSlots) {
+    //         if (s.isOccupied) canPlace = false;
+    //     }
+
+    //     if (canPlace) {
+    //         card.PlaceInSlots(allTargetSlots);
+    //     } else {
+    //         card.ReturnToHand();
+    //     }
+    // }
 
     // ─── Placement Logic ───────────────────────────────────────
     private bool CanPlaceCard(CardView card) {
@@ -200,7 +224,7 @@ public class SlotView : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
         if (card == null) return false;
 
         bool success = GridSystem.Instance.PlaceCard(card, _gridPosition, card.Orientation);
-        
+
         if (success) {
             // ย้ายการ์ดมาเป็น child ของ Grid Container แทน Card Container
             GridView visualizer = FindFirstObjectByType<GridView>();
@@ -228,7 +252,7 @@ public class SlotView : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
         if (cardRect != null && slotRect != null) {
             // คำนวณ offset ตาม orientation
             Vector2 offset = Vector2.zero;
-            
+
             if (card.Orientation == CardOrientation.Horizontal) {
                 // วางแนวนอน → เลื่อนไปขวา 0.5 slot
                 offset = Vector2.right * (slotRect.rect.width * 0.5f);

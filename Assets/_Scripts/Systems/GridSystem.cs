@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class GridSystem : Singleton<GridSystem> {
     // เก็บ Slot ทั้งหมดในรูปแบบ Dictionary เพื่อให้ค้นหาตามพิกัดได้ง่าย
-    public Dictionary<Vector2Int, Slot> slotMap = new Dictionary<Vector2Int, Slot>();
+    // public Dictionary<Vector2Int, Slot> slotMap = new Dictionary<Vector2Int, Slot>();
 
     public const int GridSize = 6;
 
@@ -31,11 +31,7 @@ public class GridSystem : Singleton<GridSystem> {
         // }
     }
 
-    // ฟังก์ชันให้ Slot เรียกใช้เพื่อหาเพื่อนบ้าน
-    public Slot GetSlotAt(int x, int y) {
-        Vector2Int pos = new Vector2Int(x, y);
-        return slotMap.ContainsKey(pos) ? slotMap[pos] : null;
-    }
+    
 
     private void InitializeGrid() {
         for (int row = 0; row < GridSize; row++) {
@@ -58,6 +54,12 @@ public class GridSystem : Singleton<GridSystem> {
     }
 
     public Slot GetSlot(Vector2Int position) => GetSlot(position.x, position.y);
+
+    // ฟังก์ชันให้ Slot เรียกใช้เพื่อหาเพื่อนบ้าน
+    // public Slot GetSlotAt(int x, int y) {
+    //     Vector2Int pos = new Vector2Int(x, y);
+    //     return slotMap.ContainsKey(pos) ? slotMap[pos] : null;
+    // }
 
 
     /// <summary>
@@ -185,6 +187,13 @@ public class GridSystem : Singleton<GridSystem> {
             ? origin + Vector2Int.right
             : origin + Vector2Int.down;
     }
+
+    // private Slot GetSecondSlot(SlotView topSlot, CardOrientation orientation) {
+    //     if (orientation == CardOrientation.Horizontal)
+    //         return GetSlot(topSlot.Coordinate.x + 1, topSlot.Coordinate.y);
+    //     else
+    //         return GetSlot(topSlot.Coordinate.x, topSlot.Coordinate.y + 1);
+    // }
 
     /// <summary>
     /// คืน SlotType ทั้ง 2 ช่องที่การ์ดครอบอยู่

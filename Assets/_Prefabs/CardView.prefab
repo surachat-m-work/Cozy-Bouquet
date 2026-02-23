@@ -84,6 +84,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2365170322712419647}
+  - component: {fileID: -3330050294114611132}
   - component: {fileID: 6920404533843758640}
   - component: {fileID: 4866606334875401670}
   m_Layer: 0
@@ -113,6 +114,18 @@ RectTransform:
   m_AnchoredPosition: {x: 198, y: -84}
   m_SizeDelta: {x: 100, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &-3330050294114611132
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8070694323116390408}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d984a1b046aff664297313e03b400220, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Card
 --- !u!114 &6920404533843758640
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125,6 +138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b736e4e27c685b7468194e431009e73f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CardView
+  <CardData>k__BackingField: {fileID: 0}
   ghostPrefab: {fileID: 8070694323116390408, guid: a4ba60fea836ca44eafbadac0804eacf, type: 3}
   isHorizontal: 0
 --- !u!225 &4866606334875401670

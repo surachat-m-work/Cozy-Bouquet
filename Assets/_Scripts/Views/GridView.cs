@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class GridView : MonoBehaviour {
+public class GridView : MonoBehaviour, IPointerEnterHandler {
     [Header("Slot Prefab")]
     [SerializeField] private GameObject _slotPrefab;
 
@@ -40,6 +40,13 @@ public class GridView : MonoBehaviour {
 
     private void Start() {
         GenerateGrid();
+    }
+
+    public void OnPointerEnter(PointerEventData eventData) {
+        CardView _draggingCard = eventData.pointerDrag?.GetComponent<CardView>();
+        if (_draggingCard != null) {
+            _draggingCard.HideGhost();
+        }
     }
 
     // ─── Grid Generation ───────────────────────────────────────
