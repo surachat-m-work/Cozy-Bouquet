@@ -67,11 +67,11 @@ public class ShadeProtectionEffect : Effect {
 
 [Serializable]
 public class DirectionalBonusEffect : Effect {
-    [SerializeField] private bool _requireHorizontal;
+    [SerializeField] private CardOrientation _orientation;
     [SerializeField] private int _bonusChips;
 
     public override GameAction GetGameAction(CardView card) {
-        if (card.IsHorizontal == _requireHorizontal)
+        if (card.Orientation == _orientation)
             return new AddChipsGA(_bonusChips);
 
         return null;

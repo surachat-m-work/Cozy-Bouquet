@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class GridView : MonoBehaviour, IPointerEnterHandler {
+public class GridView : Singleton<GridView>, IPointerEnterHandler {
     [Header("Slot Prefab")]
     [SerializeField] private GameObject _slotPrefab;
 
@@ -23,7 +23,9 @@ public class GridView : MonoBehaviour, IPointerEnterHandler {
     public RectTransform CardContainer => _cardContainer;
 
     // ─── Initialization ────────────────────────────────────────
-    private void Awake() {
+    protected override void Awake() {
+        base.Awake();
+
         if (_gridContainer == null)
             _gridContainer = transform.GetChild(0) as RectTransform;
 
@@ -68,24 +70,24 @@ public class GridView : MonoBehaviour, IPointerEnterHandler {
         Vector2 startPos = new Vector2(-totalWidth * 0.5f, totalHeight * 0.5f);
 
         // สร้าง slot แต่ละช่อง
-        for (int row = 0; row < GridSystem.GridSize; row++) {
-            for (int col = 0; col < GridSystem.GridSize; col++) {
-                Slot slotData = GridSystem.Instance.GetSlot(row, col);
+        for (int y = 0; y < GridSystem.GridSize; y++) {
+            for (int x = 0; x < GridSystem.GridSize; x++) {
+                Slot slotData = GridSystem.Instance.GetSlot(x, y);
 
                 // ถ้า slot นี้ไม่มีอยู่จริง (ถูกตัดออก) ข้ามไป
                 if (slotData == null) continue;
 
                 // สร้าง slot view
                 GameObject slotObj = Instantiate(_slotPrefab, _gridContainer);
-                slotObj.name = $"Slot_{row}_{col}";
+                slotObj.name = $"Slot_{x}_{y}";
 
                 RectTransform slotRect = slotObj.GetComponent<RectTransform>();
                 slotRect.sizeDelta = new Vector2(_slotSize, _slotSize);
 
                 // คำนวณตำแหน่ง
                 Vector2 position = startPos + new Vector2(
-                    col * (_slotSize + _spacing),
-                    -row * (_slotSize + _spacing)
+                    x * (_slotSize + _spacing),
+                    -y * (_slotSize + _spacing)
                 );
                 slotRect.anchoredPosition = position;
 
@@ -94,13 +96,13 @@ public class GridView : MonoBehaviour, IPointerEnterHandler {
                 if (slotView == null) {
                     slotView = slotObj.AddComponent<SlotView>();
                 }
-                slotView.Initialize(new Vector2Int(row, col), slotData.SlotType);
+                slotView.Initialize(new Vector2Int(x, y), slotData.SlotType);
 
-                _slotViews[row, col] = slotView;
+                _slotViews[x, y] = slotView;
 
                 // เพิ่ม debug label
                 if (_showDebugLabels) {
-                    CreateDebugLabel(slotObj, row, col, slotData.SlotType);
+                    CreateDebugLabel(slotObj, x, y, slotData.SlotType);
                 }
             }
         }
@@ -127,7 +129,7 @@ public class GridView : MonoBehaviour, IPointerEnterHandler {
     }
 
     // ─── Debug Labels ──────────────────────────────────────────
-    private void CreateDebugLabel(GameObject slotObj, int row, int col, SlotType type) {
+    private void CreateDebugLabel(GameObject slotObj, int x, int y, SlotType type) {
         GameObject labelObj = new GameObject("Label");
         labelObj.transform.SetParent(slotObj.transform, false);
 
@@ -137,9 +139,9 @@ public class GridView : MonoBehaviour, IPointerEnterHandler {
         labelRect.sizeDelta = Vector2.zero;
 
         Text labelText = labelObj.AddComponent<Text>();
-        labelText.text = $"{row},{col}\n{type}";
+        labelText.text = $"{x},{y}\n{type}";
         labelText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        labelText.fontSize = 10;
+        labelText.fontSize = 20;
         labelText.alignment = TextAnchor.MiddleCenter;
         labelText.color = Color.white;
         labelText.raycastTarget = false;
@@ -149,13 +151,19 @@ public class GridView : MonoBehaviour, IPointerEnterHandler {
     /// <summary>
     /// ดึง GridSlotView จากตำแหน่ง
     /// </summary>
-    public SlotView GetSlotView(int row, int col) {
-        if (row < 0 || row >= GridSystem.GridSize || col < 0 || col >= GridSystem.GridSize)
+    public SlotView GetSlotView(int x, int y) {
+        if (x < 0 || x >= GridSystem.GridSize || y < 0 || y >= GridSystem.GridSize)
             return null;
-        return _slotViews[row, col];
+        return _slotViews[x, y];
     }
 
     public SlotView GetSlotView(Vector2Int position) => GetSlotView(position.x, position.y);
+
+    public SlotView GetSecondSlotView(SlotView startSlot, CardOrientation orientation) {
+        return orientation == CardOrientation.Horizontal
+            ? GetSlotView(startSlot.GridPosition.x + 1, startSlot.GridPosition.y)
+            : GetSlotView(startSlot.GridPosition.x, startSlot.GridPosition.y + 1);
+    }
 
     // ─── Editor Helpers ────────────────────────────────────────
     private void OnValidate() {

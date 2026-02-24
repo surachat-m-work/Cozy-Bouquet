@@ -4,9 +4,6 @@ using System.Linq;
 using UnityEngine;
 
 public class GridSystem : Singleton<GridSystem> {
-    // เก็บ Slot ทั้งหมดในรูปแบบ Dictionary เพื่อให้ค้นหาตามพิกัดได้ง่าย
-    // public Dictionary<Vector2Int, Slot> slotMap = new Dictionary<Vector2Int, Slot>();
-
     public const int GridSize = 6;
 
     private static readonly SlotType?[,] SlotLayout = new SlotType?[GridSize, GridSize] {
@@ -24,52 +21,49 @@ public class GridSystem : Singleton<GridSystem> {
     protected override void Awake() {
         base.Awake();
         InitializeGrid();
-        // หา Slot ทั้งหมดในฉาก (ต้องแน่ใจว่า SlotSlot อยู่ใต้ GridPanel/SlotContainer)
-        // Slot[] allSlots = FindObjectsByType<Slot>(FindObjectsSortMode.None);
-        // foreach (Slot slot in allSlots) {
-        //     slotMap[slot.Coordinate] = slot;
-        // }
     }
 
-    
-
     private void InitializeGrid() {
-        for (int row = 0; row < GridSize; row++) {
-            for (int col = 0; col < GridSize; col++) {
-                SlotType? type = SlotLayout[row, col];
+        for (int y = 0; y < GridSize; y++) {
+            for (int x = 0; x < GridSize; x++) {
+                SlotType? type = SlotLayout[x, y];
                 if (type.HasValue) {
-                    _grid[row, col] = new Slot(type.Value, new Vector2Int(row, col));
+                    _grid[x, y] = new Slot(type.Value, new Vector2Int(x, y));
                 }
             }
         }
     }
 
-    /// <summary>
-    /// ดึง SlotView จากตำแหน่ง row, col
-    /// คืน null ถ้าอยู่นอก grid หรือเป็นช่องที่ตัดออก
-    /// </summary>
     public Slot GetSlot(int row, int col) {
         if (row < 0 || row >= GridSize || col < 0 || col >= GridSize) return null;
+        // Debug.Log($"{row} : {col}");
         return _grid[row, col];
     }
 
     public Slot GetSlot(Vector2Int position) => GetSlot(position.x, position.y);
 
-    // ฟังก์ชันให้ Slot เรียกใช้เพื่อหาเพื่อนบ้าน
-    // public Slot GetSlotAt(int x, int y) {
-    //     Vector2Int pos = new Vector2Int(x, y);
-    //     return slotMap.ContainsKey(pos) ? slotMap[pos] : null;
-    // }
 
 
     /// <summary>
-    /// เช็คว่าสามารถวางการ์ด 1x2 ลงตำแหน่งนี้ได้ไหม
+    /// คำนวณตำแหน่งช่องที่ 2 จาก origin และ orientation
     /// </summary>
+    public Vector2Int GetSecondSlotPosition(Vector2Int origin, CardOrientation orientation) {
+        return orientation == CardOrientation.Vertical
+            ? origin + Vector2Int.up
+            : origin + Vector2Int.right;
+    }
+
+    public Slot GetSecondSlot(Slot startSlot, CardOrientation orientation) {
+        return orientation == CardOrientation.Horizontal
+            ? GetSlot(startSlot.Position.x + 1, startSlot.Position.y)
+            : GetSlot(startSlot.Position.x, startSlot.Position.y + 1);
+    }
+
     public bool CanPlaceCard(Vector2Int origin, CardOrientation orientation) {
-        Vector2Int secondSlot = GetSecondSlotPosition(origin, orientation);
+        // Vector2Int secondSlot = GetSecondSlotPosition(origin, orientation);
 
         Slot slotA = GetSlot(origin);
-        Slot slotB = GetSlot(secondSlot);
+        Slot slotB = GetSecondSlot(slotA, orientation);
 
         if (slotA == null || slotB == null) return false;
         if (slotA.IsOccupied || slotB.IsOccupied) return false;
@@ -179,21 +173,7 @@ public class GridSystem : Singleton<GridSystem> {
         return new List<Vector2Int> { origin, second };
     }
 
-    /// <summary>
-    /// คำนวณตำแหน่งช่องที่ 2 จาก origin และ orientation
-    /// </summary>
-    public Vector2Int GetSecondSlotPosition(Vector2Int origin, CardOrientation orientation) {
-        return orientation == CardOrientation.Horizontal
-            ? origin + Vector2Int.right
-            : origin + Vector2Int.down;
-    }
 
-    // private Slot GetSecondSlot(SlotView topSlot, CardOrientation orientation) {
-    //     if (orientation == CardOrientation.Horizontal)
-    //         return GetSlot(topSlot.Coordinate.x + 1, topSlot.Coordinate.y);
-    //     else
-    //         return GetSlot(topSlot.Coordinate.x, topSlot.Coordinate.y + 1);
-    // }
 
     /// <summary>
     /// คืน SlotType ทั้ง 2 ช่องที่การ์ดครอบอยู่
