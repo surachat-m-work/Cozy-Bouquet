@@ -43,6 +43,6 @@ public class GameManager : Singleton<GameManager> {
         // foreach (Slot slot in allSlots) slot.ClearSlot();
 
         // จั่วการ์ดใหม่ให้ครบ 8
-        DeckSystem.Instance.RefillHand();
+        // DeckSystem.Instance.RefillHand();
     }
 }

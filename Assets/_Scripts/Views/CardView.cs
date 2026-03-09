@@ -1,10 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
-public class CardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler {
+public class CardView : MonoBehaviour,
+    IPointerEnterHandler,
+    IPointerExitHandler,
+    IPointerDownHandler,
+    IPointerUpHandler,
+    IBeginDragHandler,
+    IDragHandler,
+    IEndDragHandler {
     // ─── Card Data ─────────────────────────────────────────────
     public CardData CardData { get; private set; }
 
@@ -12,15 +20,21 @@ public class CardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     public bool IsPlaced { get; private set; } = false;
     public Vector2Int PlacedOrigin { get; private set; }
     public CardOrientation Orientation { get; private set; } = CardOrientation.Vertical;
-    [SerializeField] private CardOrientation _cardOrientation;
 
+    // ─── Interaction State ─────────────────────────────────────
+    public bool IsHovering { get; private set; }
+    public bool IsDragging { get; private set; }
+    public bool IsSelected { get; private set; }
+    [HideInInspector] public bool WasDragged;
+
+    // ─── References ───────────────────────────────────────────
     private Canvas _canvas;
     private CanvasGroup _canvasGroup;
     private RectTransform _rectTransform;
     private Transform _handContainer;
     private Transform _cardsContainer;
 
-    private Transform _originalParent = null;
+    // private Transform _originalParent = null;
     private List<Slot> _occupiedSlots = new List<Slot>();
 
     private SlotView _lastHoveredSlot;
@@ -28,6 +42,22 @@ public class CardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     [SerializeField] private GameObject _ghostPrefab; // ลาก Prefab Ghost มาใส่ใน Inspector
     private GameObject _currentGhost;
+
+    [Header("Selection")]
+    [SerializeField] public float SelectionOffset = 50f;
+
+    // ─── Events ────────────────────────────────────────────────
+    // CardHolder และ CardVisual subscribe event เหล่านี้
+    [HideInInspector] public UnityEvent<CardView> OnPointerEnterEvent = new();
+    [HideInInspector] public UnityEvent<CardView> OnPointerExitEvent = new();
+    [HideInInspector] public UnityEvent<CardView> OnPointerDownEvent = new();
+    [HideInInspector] public UnityEvent<CardView> OnPointerUpEvent = new();   // bool = isLongPress
+    [HideInInspector] public UnityEvent<CardView> OnBeginDragEvent = new();
+    [HideInInspector] public UnityEvent<CardView> OnEndDragEvent = new();
+    [HideInInspector] public UnityEvent<CardView, bool> OnSelectEvent = new();      // bool = isSelected
+    [HideInInspector] public UnityEvent<CardView> OnOrientationChangedEvent = new();
+    [HideInInspector] public UnityEvent<CardView> OnPlacedEvent = new();
+    [HideInInspector] public UnityEvent<CardView> OnRemovedFromGridEvent = new();
 
     private void Awake() {
         _canvas = GetComponentInParent<Canvas>();
@@ -44,7 +74,6 @@ public class CardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             RotateCard();
         }
 
-        _cardOrientation = Orientation;
     }
 
     public void Setup(CardData data) {
@@ -61,9 +90,17 @@ public class CardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     }
 
     private void ToggleOrientation() {
-        Orientation = Orientation == CardOrientation.Horizontal 
-            ? CardOrientation.Vertical 
+        Orientation = Orientation == CardOrientation.Horizontal
+            ? CardOrientation.Vertical
             : CardOrientation.Horizontal;
+
+        OnOrientationChangedEvent.Invoke(this);
+    }
+    
+    public void SetOrientation(CardOrientation orientation) {
+        if (Orientation == orientation) return;
+        Orientation = orientation;
+        OnOrientationChangedEvent.Invoke(this);
     }
 
     private void RotateCard() {
@@ -74,11 +111,11 @@ public class CardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         if (_lastHoveredSlot != null) ShowGhost(_lastHoveredSlot);
     }
 
-    public void ReturnToHand() {
-        Orientation = CardOrientation.Vertical;
-        _rectTransform.localRotation = Quaternion.identity;
-        transform.SetParent(_handContainer);
-    }
+    // public void ReturnToHand() {
+    //     Orientation = CardOrientation.Vertical;
+    //     _rectTransform.localRotation = Quaternion.identity;
+    //     transform.SetParent(_handContainer);
+    // }
 
     public void ShowGhost(SlotView hoveredSlot) {
         _lastHoveredSlot = hoveredSlot;
@@ -227,14 +264,35 @@ public class CardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         IsPlaced = false;
     }
 
+    // ─── Pointer Events (Interface Implementations) ────────────
+    public void OnPointerEnter(PointerEventData eventData) {
+        IsHovering = true;
+        OnPointerEnterEvent.Invoke(this);
+    }
+
+    public void OnPointerExit(PointerEventData eventData) {
+        IsHovering = false;
+        OnPointerExitEvent.Invoke(this);
+    }
+
+    public void OnPointerDown(PointerEventData eventData) {
+        if (eventData.button != PointerEventData.InputButton.Left) return;
+        OnPointerDownEvent.Invoke(this);
+    }
+
+    public void OnPointerUp(PointerEventData eventData) {
+        if (eventData.button != PointerEventData.InputButton.Left) return;
+        OnPointerUpEvent.Invoke(this);
+    }
+
     public void OnBeginDrag(PointerEventData eventData) {
         foreach (Slot s in _occupiedSlots) {
             s.ClearCard(); // สั่งให้ Slot ว่าง
         }
         _occupiedSlots.Clear(); // ล้างรายชื่อ Slot ที่เคยทับ
 
-        _originalParent = transform.parent;
-        transform.SetParent(_canvas.transform);
+        // _originalParent = transform.parent;
+        // transform.SetParent(_canvas.transform);
         _canvasGroup.blocksRaycasts = false;  // ให้เมาส์ทะลุไปโดน Slot ข้างหลัง
 
         _lastHoveredSlot = null;
@@ -256,10 +314,40 @@ public class CardView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         if (_currentGhost != null) Destroy(_currentGhost);
 
-        if (transform.parent == _canvas.transform) {
-            ReturnToHand();
-        }
+        // if (transform.parent == _canvas.transform) {
+        //     ReturnToHand();
+        // }
+
+        OnEndDragEvent.Invoke(this);
     }
 
+    // ─── Helpers ───────────────────────────────────────────────
+    /// <summary> index ของ slot parent ใน CardHolder </summary>
+    public int ParentIndex() {
+        return transform.parent.CompareTag("Slot")
+            ? transform.parent.GetSiblingIndex()
+            : 0;
+    }
 
+    /// <summary> จำนวน sibling การ์ดทั้งหมดในมือ </summary>
+    public int SiblingCount() {
+        return transform.parent.CompareTag("Slot")
+            ? transform.parent.parent.childCount - 1
+            : 0;
+    }
+
+    /// <summary> ตำแหน่งของการ์ดนี้ใน hand normalized 0-1 </summary>
+    public float NormalizedPosition() {
+        return transform.parent.CompareTag("Slot")
+            ? ExtensionMethods.Remap(
+                (float)ParentIndex(), 0,
+                (float)(transform.parent.parent.childCount - 1),
+                0, 1)
+            : 0f;
+    }
+
+    private void OnDestroy() {
+        // if (_visual != null)
+        //     Destroy(_visual.gameObject);
+    }
 }
